@@ -4,6 +4,9 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var async = require('async');
+var fs = require('fs');
+
 
 var index = require('./routes/index');
 
@@ -34,13 +37,31 @@ var pharosQuery = setInterval(function(){
          // send records as a response
          console.log(recordset);
 
-         console.log('Job completed successfully');
-         var date = new Date();
-         console.log(date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds());  
-         sql.close();         
+         async.eachOf(recordset.recordset, function(record, index, callback){
+          if (index == 0) {
+            fs.writeFile("./public/files/guest_access.txt", record.id + "\r\n", function(err) {
+              if(err) {
+                  return console.log(err);
+              }
+            });   
+          } else {
+            fs.appendFile("./public/files/guest_access.txt", record.id + "\r\n", function(err) {
+              if(err) {
+                  return console.log(err);
+              }   
+            });
+          }
+          callback();       
+         }, function(err){
+            console.log('Job completed successfully');
+            var date = new Date();
+            console.log(date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds());  
+            sql.close();  
+         });
+
+        });        
      });    
-  });
-}, 15 * 60 * 1000) //15 Minutes
+}, .5 * 60 * 1000) //15 Minutes
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
