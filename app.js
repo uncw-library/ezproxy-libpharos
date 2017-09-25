@@ -8,6 +8,8 @@ var async = require('async');
 var fs = require('fs');
 var Client = require('ftp');
 
+var ftp = require('./ftp');
+
 var index = require('./routes/index');
 
 var sql = require('mssql');
@@ -72,13 +74,7 @@ var pharosQuery = setInterval(function(){
               });
             });
 
-            c.connect({
-              host: '152.20.7.59',
-              user: 'randall',
-              port: 22,
-              password: 'Seahawk456!',
-              secure: true,
-            });
+            c.connect(ftp);
          });
 
         });        
