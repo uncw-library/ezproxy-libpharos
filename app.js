@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var async = require('async');
 var fs = require('fs');
-
+var Client = require('ftp');
 
 var index = require('./routes/index');
 
@@ -34,29 +34,51 @@ var pharosQuery = setInterval(function(){
          
          if (err) console.log(err)
 
-         // send records as a response
-         console.log(recordset);
-
+         //Write records to a text file
          async.eachOf(recordset.recordset, function(record, index, callback){
           if (index == 0) {
             fs.writeFile("./public/files/guest_access.txt", record.id + "\r\n", function(err) {
               if(err) {
-                  return console.log(err);
-              }
+                  console.log(err);
+              }  
             });   
           } else {
             fs.appendFile("./public/files/guest_access.txt", record.id + "\r\n", function(err) {
               if(err) {
-                  return console.log(err);
+                  console.log(err);
               }   
             });
           }
-          callback();       
+          callback();
          }, function(err){
-            console.log('Job completed successfully');
-            var date = new Date();
-            console.log(date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds());  
             sql.close();  
+            console.log('Finished writing file. Let\'s move it to the ezproxy server.');
+            //Move the file to ezproxy dev server
+            var c = new Client();
+
+            c.on('error', function(err){
+              console.log(err);
+            });
+
+            c.on('ready', function(err) {
+              console.log(err);
+              console.log("connected");
+              c.put('./public/files/guest_access.txt', '/home/randall/guest_access.txt', function(err) {
+                if (err) return console.log(err)
+                console.log("Job completed successfully --");
+                var date = new Date();
+                console.log(date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds());  
+                c.end();
+              });
+            });
+
+            c.connect({
+              host: '152.20.7.59',
+              user: 'randall',
+              port: 22,
+              password: 'Seahawk456!',
+              secure: true,
+            });
          });
 
         });        
