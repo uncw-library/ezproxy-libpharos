@@ -70,7 +70,7 @@ var pharosQuery = setInterval(function(){
 
         });        
      });    
-}, .1 * 60 * 1000) //15 Minutes
+}, 15 * 60 * 1000) //15 Minutes
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
