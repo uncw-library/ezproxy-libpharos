@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var async = require('async');
 var fs = require('fs');
-var Client = require('ftp');
+var Client = require('ssh2-sftp-client');
 
 var ftp = require('./ftp');
 
@@ -58,28 +58,19 @@ var pharosQuery = setInterval(function(){
             //Move the file to ezproxy dev server
             var c = new Client();
 
-            c.on('error', function(err){
-              console.log(err);
-            });
-
-            c.on('ready', function(err) {
-              console.log(err);
+            c.connect(ftp).then(() => {
               console.log("connected");
-              c.put('./public/files/guest_access.txt', '/home/randall/guest_access.txt', function(err) {
-                if (err) return console.log(err)
-                console.log("Job completed successfully --");
-                var date = new Date();
-                console.log(date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds());  
-                c.end();
-              });
-            });
+              c.put('./public/files/guest_access.txt', '/home/randall/guest_access.txt');
+              console.log("Job completed successfully --");
+              var date = new Date();
+              console.log(date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds());                              
+            })
 
-            c.connect(ftp);
          });
 
         });        
      });    
-}, 15 * 60 * 1000) //15 Minutes
+}, .1 * 60 * 1000) //15 Minutes
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
